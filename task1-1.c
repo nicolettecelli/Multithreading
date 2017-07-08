@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <pthread.h>
 
 int shared_variable = 0;
@@ -22,7 +21,6 @@ int shared_variable = 0;
 //
 void *simple_thread(void *which) {
   int num, val = 0;
-  int threadnum = (intptr_t)which + 1;		
 
   for (num = 0; num < 20; num++) {
     if (random() > RAND_MAX / 2) {
@@ -30,18 +28,19 @@ void *simple_thread(void *which) {
     }
 
     val = shared_variable;
-    printf("*** thread %d sees value %d\n", threadnum, val);
+    printf("*** thread %d sees value %d\n", which, val);
     shared_variable = val + 1;
   }
 
   val = shared_variable;
-  printf("Thread %d sees final value %d\n", threadnum, val);
+  printf("Thread %d sees final value %d\n", which, val);
 }
 
 int main(int argc, char *argv[]) {
   // check argc == 2    ("./task1-1 50", for example)
   if (argc != 2) {
     printf("usage: task1-1 <threadcount>\n");
+    exit(-1);
   }
   else {
     // atoi argv[1]
