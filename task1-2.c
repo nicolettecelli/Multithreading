@@ -17,14 +17,14 @@
 #include <pthread.h>
 
 #ifdef PTHREAD_SYNC
-  //
+  // initilaze mutex and barrier
   pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
   pthread_barrier_t barrier;
 #endif
 
 int shared_variable = 0;
 
-//
+// a loop that iterates 20 times for each thread
 void *simple_thread(void *which) {
   int num, val = 0;
 
@@ -79,11 +79,11 @@ int main(int argc, char *argv[]) {
       pthread_t threads[threadcount];
       long n;
 
-      //
+      // create threads
       for (n = 0; n < threadcount; n++) {
         pthread_create(&threads[n], NULL, simple_thread, (void *)n);
       }
-      //
+      // join threads
       for (n = 0; n < threadcount; n++) {
         pthread_join(threads[n], NULL);
       }
