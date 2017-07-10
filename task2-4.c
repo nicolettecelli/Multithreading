@@ -21,7 +21,7 @@
 
 int main(int argc, char *argv) {
   //set number of threads here
-  omp_set_num_threads(8);
+  omp_set_num_threads(32);
 
   int i, j, k;
   double sum;
@@ -54,7 +54,6 @@ int main(int argc, char *argv) {
     for (j = 0; j < N; j++) {
       sum = 0;
       for (k=0; k < M; k++) {
-        a
         sum += A[i][k]*B[k][j];
       }
       C[i][j] = sum;
@@ -62,7 +61,8 @@ int main(int argc, char *argv) {
   }*/
 
   /*// Outer for-loop ONLY
-  #pragma omp parallel shared(A,B,C) private(i,j,k) {
+  #pragma omp parallel shared(A,B,C) private(i,j,k)
+  {
     #pragma omp for
     for (i = 0; i < M; i++) {
       for (j = 0; j < N; j++) {
@@ -76,7 +76,8 @@ int main(int argc, char *argv) {
   }*/
 
   /*// Middle for-loop ONLY
-  #pragma omp parallel shared(A,B,C) private(i,j,k) {
+  #pragma omp parallel shared(A,B,C) private(i,j,k)
+  {
     for (i = 0; i < M; i++) {
       #pragma omp for
       for (j = 0; j < N; j++) {

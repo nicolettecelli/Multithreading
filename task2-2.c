@@ -49,7 +49,8 @@ int main (int argc, char *argv[]) {
     }
 
     end = omp_get_wtime();
-    //printf("End time: %d seconds\n", end);
-    //printf("Total runtime: %d seconds\n", (end-start));
+
+    printf("End time: %f seconds\n", end);
+    printf("Total runtime: %f seconds\n", (end-start));
   } /* end of parallel section */
 }
