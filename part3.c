@@ -30,31 +30,37 @@ void question_done();
 
 // Global variables
 int num_students, capacity, current_id, asking_id;
+int students_in_office, current_students; // keep track for professor
 omp_lock_t waiting, asking, ask_question, answer_question;
 
 void professor() {
   //printf("%d\n", omp_get_thread_num());
 
-  //while(1) { // professor answers questions until the students are satisfied
+  while (current_students != 0) {
+    // professor answers questions until the students are satisfied
     omp_unset_lock(&ask_question);
-
     omp_set_lock(&answer_question);
+
     answer_start();
     answer_done();
-    omp_unset_lock(&answer_question);
 
-    omp_set_lock(&ask_question);
-  //}
+    omp_unset_lock(&ask_question);
+    omp_set_lock(&answer_question);
+  }
 }
 
 void student(int id) {
   //printf("%d\n", id);
   int questions = (id % 4) + 1;
 
-  // enter office
+  // wait for space
   omp_set_lock(&waiting);
+  while (students_in_office == capacity);
+  omp_unset_lock(&waiting);
 
+  // enter office
   current_id = id;
+  students_in_office++;
   enter_office();
 
   int i;
@@ -64,18 +70,19 @@ void student(int id) {
     omp_set_lock(&ask_question);
     asking_id = id;
     question_start();
-    professor();
-    omp_unset_lock(&ask_question);
-
+    omp_unset_lock(&answer_question);
     omp_set_lock(&ask_question);
     question_done();
-    omp_unset_lock(&ask_question);
+    omp_unset_lock(&answer_question);
 
     omp_unset_lock(&asking);
   }
 
-  omp_unset_lock(&waiting);
+  students_in_office--;
+  current_students--;
   current_id = id;
+  //printf("here, total students: %d\n", current_students);
+  //printf("in office: %d\n\n", students_in_office);
   leave_office();
 }
 
@@ -132,18 +139,30 @@ int main(int argc, char *argv[]) {
     omp_init_lock(&waiting);
     omp_init_lock(&asking);
     omp_init_lock(&ask_question);
+    omp_set_lock(&ask_question); // wait
     omp_init_lock(&answer_question);
+    omp_set_lock(&answer_question); // wait
 
-    #pragma omp parallel num_threads(num_students+1)
+    current_students = num_students;
+    omp_set_num_threads(num_students + 1);
+
+    int tid;
+    #pragma omp parallel private(tid)
     {
-      int tid = omp_get_thread_num();
+      tid = omp_get_thread_num();
 
-      //if (tid == 0) {
-        //professor();
-      //}
-      //else {
-        student(tid);
-      //}
+      if (tid == 0) {
+        professor();
+      }
+      else {
+        student(tid - 1);
+      }
+
+      if (current_students == 0) { //no students in office
+        // End of simulation
+        printf("Office hours are closed!\n");
+        exit(0);
+      }
     }
 
     /*int i;
@@ -157,8 +176,6 @@ int main(int argc, char *argv[]) {
     omp_destroy_lock(&ask_question);
     omp_destroy_lock(&answer_question);
   }
-  // End of simulation
-  printf("Office hours are closed!\n");
 
   return 0;
 }
